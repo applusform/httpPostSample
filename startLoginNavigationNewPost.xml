@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MOML>
+
+    <THEMES id="themetapbtn" >
+        <THEME id="tapbtnpressed" layout="120,60" defaultImg="#000000" pressedImg="#343434" fontColor="#55aa66" textAlign="center" fontSize="21" />
+        <THEME id="tapbtn" layout="120,60" defaultImg="#343434" pressedImg="#000000" fontColor="#55aa66" textAlign="center" fontSize="21" />
+    </THEMES>
+
+    <UILAYOUT portrait="480,770" theme="themetapbtn" >
+        <LABEL id="logintitle" layout="0,0,480,70" defaultImg="#000000" fontColor="#55aa66" textAlign="center" fontSize="21" text="Login Sample" />
+
+        <WINDOW layout="0,70,480,630" defaultImg="#ffffff" >
+
+            <NAVIGATIONCONTAINER id="startLoginNavigation" layout="0,30,480,390" selectItem="loginInputView" >      	    
+                <VIEWITEM id="loginInputView" src="loginInputView.xml" transitionInEffect="slide:rightIn|leftOut"/>
+                <VIEWITEM id="loginOKView" src="loginOKView.xml" transitionInEffect="slide:rightIn|leftOut"/>
+            </NAVIGATIONCONTAINER>
+
+        </WINDOW> 
+        
+        <WINDOW layout="0,700,480,70" align="linear:left|bottom" defaultImg="#000000" >
+            <BUTTON id="btn1" themeId="tapbtn"  text="Tap1" onClick="caller.themeId='tapbtnpressed'"/>
+            <BUTTON id="btn2" themeId="tapbtnpressed"  text="Tap2" />
+            <BUTTON id="btn3" themeId="tapbtn" text="Tap3" />
+            <BUTTON id="btn4" themeId="tapbtn" text="Tap4" />
+        </WINDOW>
+    </UILAYOUT>
+
+    <CMD cmd="function.checkAutoLogin" />
+
+
+
+ <!-- tap button -->
+    <FUNCTION id="tapButton(type,log)" >
+        <CMD condition="type==0"  cmd="device.toastPopup(log)" />
+        <CMD condition="type==1" cmd="device.systemPopup('logmsg',log,'done', '', '')"/>
+    </FUNCTION>        
+
+    <FUNCTION id="changeTitle(title)" >
+        <CMD cmd="root.logintitle.text=title, animation.show('root.logintitle', 'fade', '', 1000, '')" />  
+    </FUNCTION>
+
+<!-- check autologin -->
+
+    <FUNCTION id="checkAutoLogin" >
+    
+   		<CMD cmd="device.toastPopup(saveVariable.autologin)"/>
+
+   		
+        <CMD condition="saveVariable.autologin=='true'" >
+         	<CMD condition="saveVariable.id=='' or saveVariable.passwd==''" cmd="startLoginNavigation.selectedItem = 'loginInputView'"> 
+         		<ELSECMD cmd="function.sendData('login')" />
+         	</CMD>
+         <ELSECMD cmd="startLoginNavigation.selectedItem = 'loginInputView'" />
+         </CMD>
+         
+    </FUNCTION>
+
+
+
+<!-- send login logout info -->
+    <FUNCTION id="sendData(msgtype)" >
+        <CMD cmd="userVariable.msgType=msgtype"/>
+
+        <CMD condition="msgtype == 'login'"
+             cmd="userVariable.postReturnValue=http.post(-1, 'http://yooic.com/testlink/login.jsp','msgtype=login'+ '|id='+saveVariable.id+ '|pwd=' +saveVariable.passwd+ '' ,'function.receiveData')" >
+         <ELSECMD condition="msgtype == 'logout'" cmd="userVariable.postReturnValue=http.post(-1, 'http://yooic.com/testlink/login.jsp','msgtype=logout','function.receiveData')" />
+        </CMD>                
+    </FUNCTION>
+
+
+<!-- display login, logout result -->
+
+    <FUNCTION id="receiveData(value, reqId, success, errorCode, errorMsg)">
+		<CMD cmd="device.toastPopup('postret  '+userVariable.postReturnValue + '    reqid : '+reqId)"/>
+
+        <CMD cmd="userVariable.msgType = xpath.evaluateEx(value, '/result/msgType/text()'), function.processData(value)" />  
+
+
+<!--
+        <CMD condition="userVariable.postReturnValue == reqId" 
+            cmd="userVariable.msgType = xpath.evaluateEx(value, '/result/msgType/text()'), function.processData(value)" 
+            elseCmd="device.toastPopup('Invalid error')"/>  
+-->
+    </FUNCTION>
+
+    <FUNCTION id="processData(value)">
+			
+		
+        <CMD condition="userVariable.msgType=='login'" cmd="userVariable.loginResult = xpath.evaluateEx(value, '/result/loginResult/text()')">
+        
+        	<CMD condition="userVariable.loginResult=='F'" 
+        	 cmd= "device.toastPopup('login Error'), userVariable.msgType = 'logout',saveVariable.autologin='false'
+        	 ,saveVariable.autologin='false', saveVariable.id='', saveVariable.passwd=',' function.goView">
+        		<ELSECMD condition="userVariable.loginResult=='S'" cmd="function.setUserInfo(value)"/>
+        	</CMD>
+        	<ELSECMD condition="userVariable.msgType=='logout'" cmd="saveVariable.autologin='false', function.goView()"/>
+        </CMD>
+            
+    </FUNCTION> 
+
+    <FUNCTION id="setUserInfo(value)">   
+    
+        <CMD cmd="userVariable.userName = xpath.evaluateEx(value, '/result/userInfo/emp_name/text()')
+        ,userVariable.userNum = xpath.evaluateEx(value, '/result/userInfo/emp_no/text()')
+        ,userVariable.userEmail = xpath.evaluateEx(value, '/result/userInfo/email/text()') 
+        ,userVariable.userAddress = xpath.evaluateEx(value, '/result/userInfo/address/text()')
+        ,function.goView"/>                        
+    </FUNCTION>
+
+
+    <FUNCTION id="goView()">          
+ 
+        <CMD condition="userVariable.msgType == 'login'" 
+            cmd="root.startLoginNavigation.selectedItem = 'loginOKView'"/>
+
+        <CMD condition="userVariable.msgType == 'logout'" 
+            cmd="root.startLoginNavigation.selectedItem = 'loginInputView'"/>                          
+    </FUNCTION>
+
+</MOML>
