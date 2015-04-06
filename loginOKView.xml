@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MOML version="1.0.0">
+        
+
+                
+	<UILAYOUT portrait="480,640" > 
+		<WINDOW layout="0,0,480,640"  align="relative" defaultImg="#ffffff" onCreate="function.root.changeTitle('Check Logout')">
+
+			<BUTTON id="btnLogout" layout="300,0,150,120" defaultImg="#55aa66" text="logout" textColor="#ababab" pressedImg="#000000"  fontSize="40" margin="10,0,0,0"
+			 onClick="userVariable.connectRequest='logout',saveVariable.autologin=0,function.root.sendData('logout')"  />
+			 
+			<WINDOW layout="0,120,480,520" align="linear:vertical|center" >
+				<LABEL layout="480,120" defaultImg="#ffffff" fontSize="40" text="Name : {userVariable.userName}"/>
+				<LABEL layout="480,120" defaultImg="#ffffff" fontSize="40" text="NUM : {userVariable.userNum}"/>
+				<LABEL layout="480,120" defaultImg="#ffffff" fontSize="40" text="Email : {userVariable.userEmail}"/>
+				<LABEL layout="480,120" defaultImg="#ffffff" fontSize="40" text="Address : {userVariable.userAddress}"/>
+
+			</WINDOW>
+
+
+		</WINDOW>
+	</UILAYOUT>
+
+</MOML>
